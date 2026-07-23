@@ -1,0 +1,140 @@
+import { Transaction, BudgetLimit, SavingsGoal, NotificationItem, UserPersona, CategoryColor } from '../types';
+
+export const CATEGORY_COLORS: CategoryColor[] = [
+  { name: 'Housing & Rent', color: '#10B981', bgColor: 'bg-emerald-500', borderColor: 'border-emerald-500' },
+  { name: 'Groceries & Dining', color: '#3B82F6', bgColor: 'bg-blue-500', borderColor: 'border-blue-500' },
+  { name: 'Utilities & Bills', color: '#F59E0B', bgColor: 'bg-amber-500', borderColor: 'border-amber-500' },
+  { name: 'Entertainment & Leisure', color: '#EC4899', bgColor: 'bg-pink-500', borderColor: 'border-pink-500' },
+  { name: 'Education & Books', color: '#8B5CF6', bgColor: 'bg-purple-500', borderColor: 'border-purple-500' },
+  { name: 'Healthcare & Medical', color: '#EF4444', bgColor: 'bg-red-500', borderColor: 'border-red-500' },
+  { name: 'Transport & Fuel', color: '#06B6D4', bgColor: 'bg-cyan-500', borderColor: 'border-cyan-500' },
+  { name: 'Investments & Savings', color: '#14B8A6', bgColor: 'bg-teal-500', borderColor: 'border-teal-500' },
+  { name: 'Shopping & Apparel', color: '#6366F1', bgColor: 'bg-indigo-500', borderColor: 'border-indigo-500' },
+  { name: 'Childcare & Family', color: '#F97316', bgColor: 'bg-orange-500', borderColor: 'border-orange-500' },
+  { name: 'Salary & Allowance', color: '#22C55E', bgColor: 'bg-green-500', borderColor: 'border-green-500' },
+  { name: 'Other', color: '#64748B', bgColor: 'bg-slate-500', borderColor: 'border-slate-500' },
+];
+
+export interface PersonaDemoData {
+  monthlyIncome: number;
+  transactions: Transaction[];
+  budgets: BudgetLimit[];
+  goals: SavingsGoal[];
+  notifications: NotificationItem[];
+}
+
+export const INITIAL_PERSONA_DATA: Record<UserPersona, PersonaDemoData> = {
+  student: {
+    monthlyIncome: 1200,
+    transactions: [
+      { id: 'st-1', title: 'Monthly Allowance', amount: 800, type: 'income', category: 'Salary & Allowance', date: '2026-07-01', paymentMethod: 'Bank Transfer' },
+      { id: 'st-2', title: 'Part-time Tutoring', amount: 400, type: 'income', category: 'Salary & Allowance', date: '2026-07-10', paymentMethod: 'PayPal' },
+      { id: 'st-3', title: 'University Textbooks & Notes', amount: 145, type: 'expense', category: 'Education & Books', date: '2026-07-02', paymentMethod: 'Debit Card', isEssential: true },
+      { id: 'st-4', title: 'Campus Cafeteria & Snacks', amount: 85, type: 'expense', category: 'Groceries & Dining', date: '2026-07-05', paymentMethod: 'UPI / Cash', isEssential: true },
+      { id: 'st-5', title: 'Dorm Room Electricity & Wi-Fi', amount: 65, type: 'expense', category: 'Utilities & Bills', date: '2026-07-08', paymentMethod: 'Debit Card', isEssential: true },
+      { id: 'st-6', title: 'Weekend Movie & Games', amount: 45, type: 'expense', category: 'Entertainment & Leisure', date: '2026-07-12', paymentMethod: 'Credit Card', isEssential: false },
+      { id: 'st-7', title: 'Public Transport Pass', amount: 50, type: 'expense', category: 'Transport & Fuel', date: '2026-07-15', paymentMethod: 'Debit Card', isEssential: true },
+      { id: 'st-8', title: 'Thrift Shop Clothes', amount: 35, type: 'expense', category: 'Shopping & Apparel', date: '2026-07-18', paymentMethod: 'Debit Card', isEssential: false },
+    ],
+    budgets: [
+      { category: 'Groceries & Dining', limit: 250, spent: 85, color: '#3B82F6' },
+      { category: 'Education & Books', limit: 200, spent: 145, color: '#8B5CF6' },
+      { category: 'Utilities & Bills', limit: 100, spent: 65, color: '#F59E0B' },
+      { category: 'Entertainment & Leisure', limit: 80, spent: 45, color: '#EC4899' },
+      { category: 'Transport & Fuel', limit: 70, spent: 50, color: '#06B6D4' },
+    ],
+    goals: [
+      { id: 'sg-1', title: 'New Laptop for Semester', targetAmount: 900, currentAmount: 520, deadline: '2026-09-15', category: 'Education & Books', notes: 'Saving part of tutoring money every week.' },
+      { id: 'sg-2', title: 'Summer Hackathon Trip', targetAmount: 300, currentAmount: 180, deadline: '2026-08-30', category: 'Entertainment & Leisure', notes: 'Hotel & train tickets' },
+    ],
+    notifications: [
+      { id: 'sn-1', title: 'Low Balance Warning', message: 'You have spent 72% of your Education budget this month.', type: 'warning', date: '2026-07-15', read: false },
+      { id: 'sn-2', title: 'Goal Milestone!', message: 'You are over 50% toward your New Laptop goal!', type: 'success', date: '2026-07-18', read: false },
+    ],
+  },
+
+  professional: {
+    monthlyIncome: 6500,
+    transactions: [
+      { id: 'pr-1', title: 'Tech Corp Salary', amount: 6500, type: 'income', category: 'Salary & Allowance', date: '2026-07-01', paymentMethod: 'Bank Direct Deposit' },
+      { id: 'pr-2', title: 'Luxury Apartment Rent', amount: 1800, type: 'expense', category: 'Housing & Rent', date: '2026-07-01', paymentMethod: 'Bank Auto-Pay', isEssential: true },
+      { id: 'pr-3', title: 'Monthly Index Fund (S&P 500)', amount: 1200, type: 'expense', category: 'Investments & Savings', date: '2026-07-03', paymentMethod: 'Investment Account', isEssential: true },
+      { id: 'pr-4', title: 'Organic Groceries & Coffee', amount: 480, type: 'expense', category: 'Groceries & Dining', date: '2026-07-07', paymentMethod: 'Credit Card', isEssential: true },
+      { id: 'pr-5', title: 'EV Charging & Highway Tolls', amount: 130, type: 'expense', category: 'Transport & Fuel', date: '2026-07-10', paymentMethod: 'Credit Card', isEssential: true },
+      { id: 'pr-6', title: 'Gym & Spa Membership', amount: 110, type: 'expense', category: 'Healthcare & Medical', date: '2026-07-11', paymentMethod: 'Credit Card', isEssential: false },
+      { id: 'pr-7', title: 'Fine Dining & Team Dinner', amount: 220, type: 'expense', category: 'Entertainment & Leisure', date: '2026-07-14', paymentMethod: 'Credit Card', isEssential: false },
+      { id: 'pr-8', title: 'Cloud Software Subscriptions', amount: 85, type: 'expense', category: 'Utilities & Bills', date: '2026-07-16', paymentMethod: 'Credit Card', isEssential: false },
+    ],
+    budgets: [
+      { category: 'Housing & Rent', limit: 2000, spent: 1800, color: '#10B981' },
+      { category: 'Investments & Savings', limit: 1500, spent: 1200, color: '#14B8A6' },
+      { category: 'Groceries & Dining', limit: 600, spent: 480, color: '#3B82F6' },
+      { category: 'Entertainment & Leisure', limit: 400, spent: 220, color: '#EC4899' },
+      { category: 'Transport & Fuel', limit: 200, spent: 130, color: '#06B6D4' },
+    ],
+    goals: [
+      { id: 'pg-1', title: 'Home Down Payment Fund', targetAmount: 35000, currentAmount: 22400, deadline: '2027-06-30', category: 'Investments & Savings', notes: 'Automated monthly transfer into high yield savings.' },
+      { id: 'pg-2', title: 'Japan Vacation 2026', targetAmount: 4000, currentAmount: 3100, deadline: '2026-11-01', category: 'Entertainment & Leisure', notes: 'Flight and ryokan stays.' },
+    ],
+    notifications: [
+      { id: 'pn-1', title: 'AI Investment Tip', message: 'You have surplus cash flow this month. Consider allocating $400 to your High-Yield account.', type: 'info', date: '2026-07-17', read: false },
+      { id: 'pn-2', title: 'Tax Savings Alert', message: 'Maximize your 401(k) contribution before end of Q3 to lower taxable bracket.', type: 'info', date: '2026-07-12', read: true },
+    ],
+  },
+
+  family: {
+    monthlyIncome: 8200,
+    transactions: [
+      { id: 'fm-1', title: 'Combined Family Salaries', amount: 8200, type: 'income', category: 'Salary & Allowance', date: '2026-07-01', paymentMethod: 'Direct Deposit' },
+      { id: 'fm-2', title: 'Suburban Mortgage Payment', amount: 2400, type: 'expense', category: 'Housing & Rent', date: '2026-07-01', paymentMethod: 'Bank Auto-Pay', isEssential: true },
+      { id: 'fm-3', title: 'Kids Daycare & Afterschool', amount: 1250, type: 'expense', category: 'Childcare & Family', date: '2026-07-02', paymentMethod: 'Debit Card', isEssential: true },
+      { id: 'fm-4', title: 'Wholesale Supermarket Groceries', amount: 920, type: 'expense', category: 'Groceries & Dining', date: '2026-07-06', paymentMethod: 'Credit Card', isEssential: true },
+      { id: 'fm-5', title: 'Family Solar & Water Bills', amount: 280, type: 'expense', category: 'Utilities & Bills', date: '2026-07-09', paymentMethod: 'Auto-Pay', isEssential: true },
+      { id: 'fm-6', title: 'Family SUV Gas & Insurance', amount: 340, type: 'expense', category: 'Transport & Fuel', date: '2026-07-12', paymentMethod: 'Credit Card', isEssential: true },
+      { id: 'fm-7', title: 'Pediatric Visit & Dental Checkup', amount: 180, type: 'expense', category: 'Healthcare & Medical', date: '2026-07-15', paymentMethod: 'Health Card', isEssential: true },
+      { id: 'fm-8', title: 'Weekend Family Amusement Park', amount: 210, type: 'expense', category: 'Entertainment & Leisure', date: '2026-07-18', paymentMethod: 'Credit Card', isEssential: false },
+    ],
+    budgets: [
+      { category: 'Housing & Rent', limit: 2500, spent: 2400, color: '#10B981' },
+      { category: 'Childcare & Family', limit: 1400, spent: 1250, color: '#F97316' },
+      { category: 'Groceries & Dining', limit: 1100, spent: 920, color: '#3B82F6' },
+      { category: 'Utilities & Bills', limit: 350, spent: 280, color: '#F59E0B' },
+      { category: 'Transport & Fuel', limit: 400, spent: 340, color: '#06B6D4' },
+    ],
+    goals: [
+      { id: 'fg-1', title: 'Kids College Education Fund', targetAmount: 50000, currentAmount: 28500, deadline: '2032-08-01', category: 'Education & Books', notes: '529 College Savings Plan' },
+      { id: 'fg-2', title: 'Family SUV Upgrade', targetAmount: 15000, currentAmount: 9200, deadline: '2027-01-15', category: 'Transport & Fuel', notes: 'Hybrid 7-seater down payment' },
+    ],
+    notifications: [
+      { id: 'fn-1', title: 'Bill Due Tomorrow!', message: 'Water & Solar electric bill ($280) is due tomorrow.', type: 'bill', date: '2026-07-08', read: false },
+      { id: 'fn-2', title: 'Budget Limit Reached', message: 'Housing budget is at 96% capacity for this month.', type: 'warning', date: '2026-07-14', read: false },
+    ],
+  },
+
+  senior: {
+    monthlyIncome: 3400,
+    transactions: [
+      { id: 'sr-1', title: 'Monthly Pension & Social Security', amount: 3400, type: 'income', category: 'Salary & Allowance', date: '2026-07-01', paymentMethod: 'Direct Deposit' },
+      { id: 'sr-2', title: 'Senior Living Condo HOA & Utilities', amount: 850, type: 'expense', category: 'Housing & Rent', date: '2026-07-01', paymentMethod: 'Bank Transfer', isEssential: true },
+      { id: 'sr-3', title: 'Prescription Medicines & Wellness', amount: 320, type: 'expense', category: 'Healthcare & Medical', date: '2026-07-04', paymentMethod: 'Medicare Card', isEssential: true },
+      { id: 'sr-4', title: 'Fresh Groceries & Healthy Meals', amount: 410, type: 'expense', category: 'Groceries & Dining', date: '2026-07-07', paymentMethod: 'Debit Card', isEssential: true },
+      { id: 'sr-5', title: 'Home Gas & Heating Electricity', amount: 140, type: 'expense', category: 'Utilities & Bills', date: '2026-07-10', paymentMethod: 'Auto-Pay', isEssential: true },
+      { id: 'sr-6', title: 'Grandkids Birthday Gifts', amount: 150, type: 'expense', category: 'Shopping & Apparel', date: '2026-07-13', paymentMethod: 'Debit Card', isEssential: false },
+      { id: 'sr-7', title: 'Gardening Supplies & Book Club', amount: 75, type: 'expense', category: 'Entertainment & Leisure', date: '2026-07-16', paymentMethod: 'Cash', isEssential: false },
+    ],
+    budgets: [
+      { category: 'Housing & Rent', limit: 900, spent: 850, color: '#10B981' },
+      { category: 'Healthcare & Medical', limit: 500, spent: 320, color: '#EF4444' },
+      { category: 'Groceries & Dining', limit: 500, spent: 410, color: '#3B82F6' },
+      { category: 'Utilities & Bills', limit: 200, spent: 140, color: '#F59E0B' },
+    ],
+    goals: [
+      { id: 'srg-1', title: 'Grandchildren Holiday Fund', targetAmount: 2000, currentAmount: 1650, deadline: '2026-12-20', category: 'Shopping & Apparel', notes: 'Presents and holiday visit tickets' },
+      { id: 'srg-2', title: 'Healthcare Safety Buffer', targetAmount: 5000, currentAmount: 4200, deadline: '2026-10-31', category: 'Healthcare & Medical', notes: 'Emergency medical savings reserve' },
+    ],
+    notifications: [
+      { id: 'srn-1', title: 'Monthly Fixed Income On Track', message: 'Your essential expenses are 18% below your fixed pension income.', type: 'success', date: '2026-07-16', read: false },
+      { id: 'srn-2', title: 'Healthcare Refill Reminder', message: 'Prescription refill scheduled for 22nd July.', type: 'info', date: '2026-07-18', read: false },
+    ],
+  },
+};

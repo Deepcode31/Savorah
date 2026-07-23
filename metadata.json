@@ -1,0 +1,6 @@
+{
+  "name": "Savorah",
+  "description": "Adaptive AI-powered personal and business expense tracker with glassmorphism UI, persona-based dashboards, analytics, and Gemini financial coaching.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
