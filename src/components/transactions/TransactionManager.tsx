@@ -1,9 +1,25 @@
 import React, { useState } from 'react';
 import { useFinance } from '../../context/FinanceContext';
+import { useAuth } from '../../context/AuthContext';
 import { Transaction } from '../../types';
 import { CATEGORY_COLORS } from '../../data/initialData';
-import { Plus, Search, Trash2, Edit2 } from 'lucide-react';
-import { AddTransactionHub } from './AddTransactionHub';
+import { SmartTransactionModal } from './SmartTransactionModal';
+import {
+  Plus,
+  Search,
+  Filter,
+  Trash2,
+  Edit2,
+  Sparkles,
+  CheckCircle2,
+  X,
+  Upload,
+  IndianRupee,
+  Tag,
+  Calendar,
+  CreditCard,
+  FileText,
+} from 'lucide-react';
 
 interface TransactionManagerProps {
   isAddModalOpenInitially?: boolean;
@@ -15,8 +31,9 @@ export const TransactionManager: React.FC<TransactionManagerProps> = ({
   onCloseAddModal,
 }) => {
   const { transactions, deleteTransaction } = useFinance();
+  const { currentUser } = useAuth();
 
-  const [isHubOpen, setIsHubOpen] = useState(isAddModalOpenInitially);
+  const [isModalOpen, setIsModalOpen] = useState(isAddModalOpenInitially);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
   // Search & Filter state
@@ -24,19 +41,18 @@ export const TransactionManager: React.FC<TransactionManagerProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
 
-  const openAdd = () => {
+  const handleOpenAdd = () => {
     setEditingTx(null);
-    setIsHubOpen(true);
+    setIsModalOpen(true);
   };
 
-  const openEdit = (tx: Transaction) => {
+  const handleOpenEdit = (tx: Transaction) => {
     setEditingTx(tx);
-    setIsHubOpen(true);
+    setIsModalOpen(true);
   };
 
-  const closeHub = () => {
-    setIsHubOpen(false);
-    setEditingTx(null);
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
     if (onCloseAddModal) onCloseAddModal();
   };
 
@@ -46,8 +62,10 @@ export const TransactionManager: React.FC<TransactionManagerProps> = ({
       tx.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tx.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (tx.notes && tx.notes.toLowerCase().includes(searchQuery.toLowerCase()));
+
     const matchesCategory = selectedCategory === 'all' || tx.category === selectedCategory;
     const matchesType = typeFilter === 'all' || tx.type === typeFilter;
+
     return matchesSearch && matchesCategory && matchesType;
   });
 
@@ -65,7 +83,7 @@ export const TransactionManager: React.FC<TransactionManagerProps> = ({
         </div>
 
         <button
-          onClick={openAdd}
+          onClick={handleOpenAdd}
           className="py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center gap-2 transition-all"
         >
           <Plus className="w-4 h-4" />
@@ -91,17 +109,30 @@ export const TransactionManager: React.FC<TransactionManagerProps> = ({
         <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
           {/* Type Filter */}
           <div className="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
-            {(['all', 'income', 'expense'] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setTypeFilter(f)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition-all ${
-                  typeFilter === f ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-500'
-                }`}
-              >
-                {f}
-              </button>
-            ))}
+            <button
+              onClick={() => setTypeFilter('all')}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                typeFilter === 'all' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-500'
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setTypeFilter('income')}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                typeFilter === 'income' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-500'
+              }`}
+            >
+              Income
+            </button>
+            <button
+              onClick={() => setTypeFilter('expense')}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                typeFilter === 'expense' ? 'bg-white text-emerald-800 shadow-sm' : 'text-slate-500'
+              }`}
+            >
+              Expense
+            </button>
           </div>
 
           {/* Category Dropdown */}
@@ -112,7 +143,9 @@ export const TransactionManager: React.FC<TransactionManagerProps> = ({
           >
             <option value="all">All Categories</option>
             {CATEGORY_COLORS.map((c) => (
-              <option key={c.name} value={c.name}>{c.name}</option>
+              <option key={c.name} value={c.name}>
+                {c.name}
+              </option>
             ))}
           </select>
         </div>
@@ -152,7 +185,9 @@ export const TransactionManager: React.FC<TransactionManagerProps> = ({
                         <div>
                           <div>{tx.title}</div>
                           {tx.notes && (
-                            <div className="text-[10px] font-normal text-slate-400">{tx.notes}</div>
+                            <div className="text-[10px] font-normal text-slate-400">
+                              {tx.notes}
+                            </div>
                           )}
                         </div>
                       </div>
@@ -172,13 +207,13 @@ export const TransactionManager: React.FC<TransactionManagerProps> = ({
                         tx.type === 'income' ? 'text-emerald-600' : 'text-slate-900'
                       }`}
                     >
-                      {tx.type === 'income' ? '+' : '-'}${tx.amount.toLocaleString()}
+                      {tx.type === 'income' ? '+' : '-'}₹{tx.amount.toLocaleString()}
                     </td>
 
                     <td className="py-3.5 text-center">
                       <div className="flex items-center justify-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
                         <button
-                          onClick={() => openEdit(tx)}
+                          onClick={() => handleOpenEdit(tx)}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
                           title="Edit transaction"
                         >
@@ -201,11 +236,11 @@ export const TransactionManager: React.FC<TransactionManagerProps> = ({
         </div>
       </div>
 
-      {/* AI-Powered Add Transaction Hub */}
-      <AddTransactionHub
-        isOpen={isHubOpen}
+      {/* Smart Transaction Import Hub Modal */}
+      <SmartTransactionModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
         editingTx={editingTx}
-        onClose={closeHub}
       />
     </div>
   );

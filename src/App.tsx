@@ -6,6 +6,7 @@ import { Sidebar } from './components/layout/Sidebar';
 import { AuthModal } from './components/auth/AuthModal';
 import { UserProfileModal } from './components/auth/UserProfileModal';
 import { AdaptiveDashboard } from './components/dashboard/AdaptiveDashboard';
+import { TransactionManager } from './components/transactions/TransactionManager';
 import { BudgetPlanner } from './components/budget/BudgetPlanner';
 import { AnalyticsView } from './components/analytics/AnalyticsView';
 import { SavingsGoalsView } from './components/goals/SavingsGoalsView';
@@ -17,7 +18,7 @@ function DashboardContent() {
   const { currentUser } = useAuth();
 
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'budget' | 'analytics' | 'goals' | 'aicoach' | 'business'
+    'dashboard' | 'transactions' | 'budget' | 'analytics' | 'goals' | 'aicoach' | 'business'
   >('dashboard');
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(!currentUser);
@@ -47,6 +48,13 @@ function DashboardContent() {
             />
           )}
 
+          {activeTab === 'transactions' && (
+            <TransactionManager
+              isAddModalOpenInitially={isAddExpenseModalOpen}
+              onCloseAddModal={() => setIsAddExpenseModalOpen(false)}
+            />
+          )}
+
           {activeTab === 'budget' && <BudgetPlanner />}
 
           {activeTab === 'analytics' && <AnalyticsView />}
@@ -61,7 +69,12 @@ function DashboardContent() {
 
       {/* Floating Action Button (FAB) for Mobile / Quick Expense */}
       <button
-        onClick={() => setIsAddExpenseModalOpen(true)}
+        onClick={() => {
+          if (activeTab !== 'transactions') {
+            setActiveTab('transactions');
+          }
+          setIsAddExpenseModalOpen(true);
+        }}
         className="fixed bottom-6 right-6 z-40 p-4 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-2xl shadow-emerald-950/30 hover:scale-105 active:scale-95 transition-all flex items-center justify-center border border-white/30"
         title="Quick Log Expense"
       >

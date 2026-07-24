@@ -23,7 +23,7 @@ const DEFAULT_USERS: Record<UserPersona, User> = {
     avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Alex&backgroundColor=b6e3f4,c0aede',
     persona: 'student',
     monthlyIncome: 1200,
-    currency: '$',
+    currency: '₹',
     isLoggedIn: true,
   },
   professional: {
@@ -33,7 +33,7 @@ const DEFAULT_USERS: Record<UserPersona, User> = {
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah&backgroundColor=b6e3f4,c0aede',
     persona: 'professional',
     monthlyIncome: 6500,
-    currency: '$',
+    currency: '₹',
     isLoggedIn: true,
   },
   family: {
@@ -43,7 +43,7 @@ const DEFAULT_USERS: Record<UserPersona, User> = {
     avatar: 'https://api.dicebear.com/7.x/open-peeps/svg?seed=Miller&backgroundColor=b6e3f4,c0aede',
     persona: 'family',
     monthlyIncome: 8200,
-    currency: '$',
+    currency: '₹',
     isLoggedIn: true,
   },
   senior: {
@@ -53,7 +53,7 @@ const DEFAULT_USERS: Record<UserPersona, User> = {
     avatar: 'https://api.dicebear.com/7.x/big-smile/svg?seed=Robert&backgroundColor=b6e3f4,c0aede',
     persona: 'senior',
     monthlyIncome: 3400,
-    currency: '$',
+    currency: '₹',
     isLoggedIn: true,
   },
 };
@@ -67,6 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const u = JSON.parse(saved);
         if (u.name === 'Google User') u.name = 'Chandresh Sabhadiya';
+        u.currency = '₹';
         return u;
       } catch (e) { console.error(e); }
     }
@@ -100,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email: email,
       persona: 'professional',
       monthlyIncome: 5000,
-      currency: '$',
+      currency: '₹',
       isLoggedIn: true,
     };
     setCurrentUser(newUser);
@@ -115,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       email,
       persona,
       monthlyIncome: Number(monthlyIncome) || 3000,
-      currency: '$',
+      currency: '₹',
       isLoggedIn: true,
     };
     setCurrentUser(newUser);
@@ -132,7 +133,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Chandresh&backgroundColor=b6e3f4,c0aede',
       persona: 'professional',
       monthlyIncome: 6000,
-      currency: '$',
+      currency: '₹',
       isLoggedIn: true,
       isGoogleUser: true,
     };

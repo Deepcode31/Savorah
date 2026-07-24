@@ -4,7 +4,7 @@ import {
   Building2,
   TrendingUp,
   TrendingDown,
-  DollarSign,
+  IndianRupee,
   AlertTriangle,
   Clock,
   Plus,
@@ -93,7 +93,7 @@ export const BusinessModeView: React.FC = () => {
             Gross Monthly Revenue
           </span>
           <div className="text-2xl font-black text-slate-900 mt-1">
-            ${grossMonthlyRevenue.toLocaleString()}
+            ₹{grossMonthlyRevenue.toLocaleString()}
           </div>
           <p className="text-[11px] text-emerald-600 font-bold mt-1">
             +14.2% vs last month
@@ -105,7 +105,7 @@ export const BusinessModeView: React.FC = () => {
             Operational Outflow (OPEX)
           </span>
           <div className="text-2xl font-black text-slate-900 mt-1">
-            ${operationalCosts.toLocaleString()}
+            ₹{operationalCosts.toLocaleString()}
           </div>
           <p className="text-[11px] text-slate-500 mt-1">
             Payroll, SaaS, Office, Cloud
@@ -117,7 +117,7 @@ export const BusinessModeView: React.FC = () => {
             Net Operating Profit
           </span>
           <div className="text-2xl font-black text-emerald-600 mt-1">
-            ${netOperatingProfit.toLocaleString()}
+            ₹{netOperatingProfit.toLocaleString()}
           </div>
           <p className="text-[11px] text-emerald-700 font-semibold mt-1">
             Positive Cash Margin
@@ -132,7 +132,7 @@ export const BusinessModeView: React.FC = () => {
             {cashRunwayMonths} Months
           </div>
           <p className="text-[11px] text-slate-500 mt-1">
-            Based on $85k cash reserve
+            Based on ₹85k cash reserve
           </p>
         </div>
       </div>
@@ -166,7 +166,7 @@ export const BusinessModeView: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <div className="text-right">
                     <div className="font-black text-xs text-slate-900">
-                      ${inv.amount.toLocaleString()}
+                      ₹{inv.amount.toLocaleString()}
                     </div>
                   </div>
 
@@ -209,7 +209,7 @@ export const BusinessModeView: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Bill Amount ($)
+                Bill Amount (₹)
               </label>
               <input
                 type="number"

@@ -133,7 +133,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (newTotal > b.limit) {
           addNotification({
             title: `Budget Limit Exceeded: ${tx.category}`,
-            message: `Your spending in ${tx.category} ($${newTotal}) has exceeded your limit of $${b.limit}!`,
+            message: `Your spending in ${tx.category} (₹${newTotal}) has exceeded your limit of ₹${b.limit}!`,
             type: 'warning',
           });
         }
@@ -182,7 +182,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             }
             addNotification({
               title: `🎉 Goal Achieved: ${g.title}!`,
-              message: `Congratulations! You reached your savings target of $${g.targetAmount.toLocaleString()}.`,
+              message: `Congratulations! You reached your savings target of ₹${g.targetAmount.toLocaleString()}.`,
               type: 'success',
             });
           }

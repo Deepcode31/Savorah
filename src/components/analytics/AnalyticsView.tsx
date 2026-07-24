@@ -98,7 +98,7 @@ export const AnalyticsView: React.FC = () => {
               </h3>
             </div>
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              Total: ${totalExpense.toLocaleString()}
+              Total: ₹{totalExpense.toLocaleString()}
             </span>
           </div>
 
@@ -129,7 +129,7 @@ export const AnalyticsView: React.FC = () => {
                     ))}
                   </Pie>
                   <Tooltip
-                    formatter={(value: any) => [`$${Number(value).toLocaleString()}`, 'Spent']}
+                    formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, 'Spent']}
                     contentStyle={{
                       backgroundColor: 'rgba(255, 255, 255, 0.95)',
                       borderRadius: '16px',
@@ -166,7 +166,7 @@ export const AnalyticsView: React.FC = () => {
                     <span className="text-slate-800 truncate max-w-[130px]">{item.name}</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-slate-900 font-bold">${item.value.toLocaleString()}</div>
+                    <div className="text-slate-900 font-bold">₹{item.value.toLocaleString()}</div>
                     <div className="text-[10px] text-slate-400">{percent}%</div>
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export const AnalyticsView: React.FC = () => {
                 <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748b' }} />
                 <YAxis tick={{ fontSize: 10, fill: '#64748b' }} />
                 <Tooltip
-                  formatter={(value: any) => [`$${Number(value).toLocaleString()}`, 'Amount']}
+                  formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, 'Amount']}
                   contentStyle={{
                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
                     borderRadius: '12px',
@@ -231,7 +231,7 @@ export const AnalyticsView: React.FC = () => {
                 <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748b' }} />
                 <YAxis tick={{ fontSize: 10, fill: '#64748b' }} />
                 <Tooltip
-                  formatter={(value: any) => [`$${Number(value).toLocaleString()}`, 'Amount']}
+                  formatter={(value: any) => [`₹${Number(value).toLocaleString()}`, 'Amount']}
                   contentStyle={{
                     backgroundColor: 'rgba(255, 255, 255, 0.95)',
                     borderRadius: '12px',

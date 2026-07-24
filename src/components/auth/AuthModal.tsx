@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SavorahLogo } from '../common/SavorahLogo';
 import { useAuth } from '../../context/AuthContext';
 import { UserPersona } from '../../types';
 import {
@@ -6,7 +7,7 @@ import {
   Mail,
   Lock,
   User as UserIcon,
-  DollarSign,
+  IndianRupee,
   GraduationCap,
   Briefcase,
   Users,
@@ -77,11 +78,11 @@ export const AuthModal: React.FC = () => {
 
         {/* Brand Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-600/20 mb-3">
-            <ShieldCheck className="w-6 h-6" />
+          <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-xs mb-3">
+            <SavorahLogo className="w-10 h-10" />
           </div>
           <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Welcome to <span className="text-emerald-600 font-extrabold">Savorah</span>
+            Welcome to <span className="text-emerald-700 font-extrabold">Savorah</span>
           </h2>
           <p className="text-sm text-slate-500 mt-1">
             Track your money, so you can pretend you're in control.
@@ -319,10 +320,10 @@ export const AuthModal: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Estimated Monthly Income ($)
+                  Estimated Monthly Income (₹)
                 </label>
                 <div className="relative">
-                  <DollarSign className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+                  <IndianRupee className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
                   <input
                     type="number"
                     value={monthlyIncome}

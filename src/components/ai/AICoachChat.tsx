@@ -36,7 +36,7 @@ export const AICoachChat: React.FC = () => {
   const [enableLowLatency, setEnableLowLatency] = useState(false); // gemini-3.1-flash-lite
 
   const promptSuggestions = [
-    'How can I cut my grocery & dining bill by $150?',
+    'How can I cut my grocery & dining bill by ₹150?',
     'What is a safe investment strategy for my persona?',
     'Analyze my current spending leaks',
     'How should I plan my tax deductions this quarter?',

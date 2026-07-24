@@ -35,6 +35,14 @@ export interface BudgetLimit {
   color: string;
 }
 
+export interface GoalContribution {
+  id: string;
+  amount: number;
+  date: string;
+  note?: string;
+  type?: 'scheduled' | 'one-time' | 'bonus';
+}
+
 export interface SavingsGoal {
   id: string;
   title: string;
@@ -44,6 +52,13 @@ export interface SavingsGoal {
   category: string;
   imageUrl?: string;
   notes?: string;
+  icon?: string;
+  monthlyContribution?: number;
+  expectedReturnRate?: number; // e.g. 8 for 8% annual
+  priority?: 'high' | 'medium' | 'low';
+  riskLevel?: 'low' | 'medium' | 'high';
+  color?: string;
+  history?: GoalContribution[];
 }
 
 export interface NotificationItem {

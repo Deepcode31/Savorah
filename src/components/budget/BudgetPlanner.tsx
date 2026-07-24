@@ -9,7 +9,7 @@ import {
   CheckCircle2,
   Edit3,
   Save,
-  DollarSign,
+  IndianRupee,
   PieChart,
 } from 'lucide-react';
 
@@ -128,7 +128,7 @@ export const BudgetPlanner: React.FC = () => {
             Total Budget Limit
           </span>
           <div className="text-2xl font-black text-slate-900 mt-1">
-            ${totalLimit.toLocaleString()}
+            ₹{totalLimit.toLocaleString()}
           </div>
         </div>
 
@@ -137,7 +137,7 @@ export const BudgetPlanner: React.FC = () => {
             Total Spent
           </span>
           <div className="text-2xl font-black text-slate-900 mt-1">
-            ${totalSpent.toLocaleString()}
+            ₹{totalSpent.toLocaleString()}
           </div>
         </div>
 
@@ -150,7 +150,7 @@ export const BudgetPlanner: React.FC = () => {
               totalRemaining >= 0 ? 'text-emerald-700' : 'text-rose-600'
             }`}
           >
-            ${totalRemaining.toLocaleString()}
+            ₹{totalRemaining.toLocaleString()}
           </div>
         </div>
       </div>
@@ -208,10 +208,10 @@ export const BudgetPlanner: React.FC = () => {
               {/* Status amounts */}
               <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
                 <span>
-                  Spent: <strong className="text-slate-900">${b.spent}</strong>
+                  Spent: <strong className="text-slate-900">₹{b.spent}</strong>
                 </span>
                 <span>
-                  Limit: <strong className="text-slate-900">${b.limit}</strong>
+                  Limit: <strong className="text-slate-900">₹{b.limit}</strong>
                 </span>
               </div>
 
@@ -239,7 +239,7 @@ export const BudgetPlanner: React.FC = () => {
                   {isOver && (
                     <>
                       <AlertCircle className="w-3.5 h-3.5" />
-                      Exceeded by ${(b.spent - b.limit).toLocaleString()}
+                      Exceeded by ₹{(b.spent - b.limit).toLocaleString()}
                     </>
                   )}
                   {isWarning && (
@@ -251,7 +251,7 @@ export const BudgetPlanner: React.FC = () => {
                   {!isOver && !isWarning && (
                     <>
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      On Track (${b.limit - b.spent} remaining)
+                      On Track (₹{b.limit - b.spent} remaining)
                     </>
                   )}
                 </span>
