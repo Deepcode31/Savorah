@@ -1,170 +1,252 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User, UserPersona } from '../types';
+import { api, getToken, setToken } from '../services/api';
 
 interface AuthContextType {
   currentUser: User | null;
-  login: (email: string, password?: string) => boolean;
-  signup: (name: string, email: string, persona: UserPersona, monthlyIncome: number) => boolean;
-  loginWithGoogle: () => void;
+  authLoading: boolean;
+  login: (email: string, password?: string) => Promise<boolean>;
+  signup: (
+    name: string,
+    email: string,
+    persona: UserPersona,
+    monthlyIncome: number,
+    password?: string
+  ) => Promise<boolean>;
+  loginWithGoogle: (
+    credential: string,
+    extras?: { persona?: UserPersona; monthlyIncome?: number }
+  ) => Promise<void>;
+  requestOtp: (payload: {
+    email: string;
+    name?: string;
+    persona?: UserPersona;
+    monthlyIncome?: number;
+  }) => Promise<{ isNewUser: boolean; emailed: boolean; devCode?: string }>;
+  verifyOtp: (email: string, code: string) => Promise<void>;
+  loginDemo: (persona: UserPersona) => Promise<void>;
   logout: () => void;
-  updateProfile: (updates: Partial<User>) => void;
-  switchPersonaQuick: (persona: UserPersona) => void;
+  updateProfile: (updates: Partial<User>) => Promise<void>;
+  switchPersonaQuick: (persona: UserPersona) => Promise<void>;
+  completeOnboarding: (payload: {
+    name?: string;
+    avatar?: string;
+    monthlyIncome?: number;
+    persona?: UserPersona;
+    goals?: any[];
+    useAiBudget?: boolean;
+  }) => Promise<void>;
   isAuthModalOpen: boolean;
   setAuthModalOpen: (open: boolean) => void;
   authMode: 'login' | 'signup';
   setAuthMode: (mode: 'login' | 'signup') => void;
 }
 
-const DEFAULT_USERS: Record<UserPersona, User> = {
-  student: {
-    id: 'usr-student',
-    name: 'Alex Rivera',
-    email: 'alex.student@savorah.app',
-    avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Alex&backgroundColor=b6e3f4,c0aede',
-    persona: 'student',
-    monthlyIncome: 1200,
-    currency: '$',
-    isLoggedIn: true,
-  },
-  professional: {
-    id: 'usr-prof',
-    name: 'Sarah Chen, CFA',
-    email: 'sarah.chen@savorah.app',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah&backgroundColor=b6e3f4,c0aede',
-    persona: 'professional',
-    monthlyIncome: 6500,
-    currency: '$',
-    isLoggedIn: true,
-  },
-  family: {
-    id: 'usr-family',
-    name: 'The Miller Household',
-    email: 'miller.family@savorah.app',
-    avatar: 'https://api.dicebear.com/7.x/open-peeps/svg?seed=Miller&backgroundColor=b6e3f4,c0aede',
-    persona: 'family',
-    monthlyIncome: 8200,
-    currency: '$',
-    isLoggedIn: true,
-  },
-  senior: {
-    id: 'usr-senior',
-    name: 'Robert Vance',
-    email: 'robert.vance@savorah.app',
-    avatar: 'https://api.dicebear.com/7.x/big-smile/svg?seed=Robert&backgroundColor=b6e3f4,c0aede',
-    persona: 'senior',
-    monthlyIncome: 3400,
-    currency: '$',
-    isLoggedIn: true,
-  },
-};
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('savorah_user');
-    if (saved) {
-      try {
-        const u = JSON.parse(saved);
-        if (u.name === 'Google User') u.name = 'Chandresh Sabhadiya';
-        return u;
-      } catch (e) { console.error(e); }
-    }
-    // Default logged in as Student demo user to show immediate dashboard
-    return DEFAULT_USERS.student;
-  });
+function mapUser(u: any): User {
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    avatar: u.avatar,
+    persona: u.persona,
+    monthlyIncome: u.monthlyIncome,
+    currency: u.currency || '₹',
+    isLoggedIn: true,
+    isGoogleUser: u.isGoogleUser,
+    onboardingComplete: u.onboardingComplete,
+  };
+}
 
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
   useEffect(() => {
-    if (currentUser) {
-      localStorage.setItem('savorah_user', JSON.stringify(currentUser));
-    } else {
-      localStorage.removeItem('savorah_user');
+    const token = getToken();
+    if (!token) {
+      setAuthLoading(false);
+      return;
     }
-  }, [currentUser]);
+    api<{ user: any }>('/api/auth/me')
+      .then((data) => {
+        setCurrentUser(mapUser(data.user));
+      })
+      .catch(() => {
+        setToken(null);
+        setCurrentUser(null);
+      })
+      .finally(() => setAuthLoading(false));
+  }, []);
 
-  const login = (email: string): boolean => {
-    // Check if email matches demo persona
-    const found = Object.values(DEFAULT_USERS).find((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (found) {
-      setCurrentUser({ ...found, isLoggedIn: true });
+  const login = useCallback(async (email: string, password = ''): Promise<boolean> => {
+    try {
+      const data = await api<{ token: string; user: any }>('/api/auth/login', {
+        method: 'POST',
+        auth: false,
+        body: JSON.stringify({ email, password }),
+      });
+      setToken(data.token);
+      setCurrentUser(mapUser(data.user));
       setAuthModalOpen(false);
       return true;
+    } catch (e: any) {
+      console.error(e);
+      throw e;
     }
-    // Generic login user
-    const newUser: User = {
-      id: `usr-${Date.now()}`,
-      name: email.split('@')[0],
-      email: email,
-      persona: 'professional',
-      monthlyIncome: 5000,
-      currency: '$',
-      isLoggedIn: true,
-    };
-    setCurrentUser(newUser);
-    setAuthModalOpen(false);
-    return true;
-  };
+  }, []);
 
-  const signup = (name: string, email: string, persona: UserPersona, monthlyIncome: number): boolean => {
-    const newUser: User = {
-      id: `usr-${Date.now()}`,
-      name,
-      email,
-      persona,
-      monthlyIncome: Number(monthlyIncome) || 3000,
-      currency: '$',
-      isLoggedIn: true,
-    };
-    setCurrentUser(newUser);
-    setAuthModalOpen(false);
-    return true;
-  };
+  const signup = useCallback(
+    async (
+      name: string,
+      email: string,
+      persona: UserPersona,
+      monthlyIncome: number,
+      password = 'savorah123'
+    ): Promise<boolean> => {
+      try {
+        const data = await api<{ token: string; user: any }>('/api/auth/register', {
+          method: 'POST',
+          auth: false,
+          body: JSON.stringify({ name, email, password, persona, monthlyIncome }),
+        });
+        setToken(data.token);
+        setCurrentUser(mapUser(data.user));
+        setAuthModalOpen(false);
+        return true;
+      } catch (e: any) {
+        console.error(e);
+        throw e;
+      }
+    },
+    []
+  );
 
-  const loginWithGoogle = () => {
-    // Simulate Google Sign-In
-    const googleUser: User = {
-      id: `usr-google-${Date.now()}`,
-      name: 'Chandresh Sabhadiya',
-      email: 'sabhadiyachandresh3@gmail.com',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Chandresh&backgroundColor=b6e3f4,c0aede',
-      persona: 'professional',
-      monthlyIncome: 6000,
-      currency: '$',
-      isLoggedIn: true,
-      isGoogleUser: true,
-    };
-    setCurrentUser(googleUser);
-    setAuthModalOpen(false);
-  };
+  const loginWithGoogle = useCallback(
+    async (
+      credential: string,
+      extras?: { persona?: UserPersona; monthlyIncome?: number }
+    ) => {
+      const data = await api<{ token: string; user: any; isNewUser?: boolean }>('/api/auth/google', {
+        method: 'POST',
+        auth: false,
+        body: JSON.stringify({
+          credential,
+          persona: extras?.persona,
+          monthlyIncome: extras?.monthlyIncome,
+        }),
+      });
+      setToken(data.token);
+      setCurrentUser(mapUser(data.user));
+      setAuthModalOpen(false);
+    },
+    []
+  );
 
-  const logout = () => {
+  const requestOtp = useCallback(
+    async (payload: { email: string; name?: string; persona?: UserPersona; monthlyIncome?: number }) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15_000);
+      try {
+        return await api<{ isNewUser: boolean; emailed: boolean; devCode?: string }>(
+          '/api/auth/otp/request',
+          {
+            method: 'POST',
+            auth: false,
+            body: JSON.stringify(payload),
+            signal: controller.signal,
+          }
+        );
+      } catch (err: any) {
+        if (err?.name === 'AbortError') {
+          throw new Error('Sending the login code took too long. Check your connection and try again.');
+        }
+        throw err;
+      } finally {
+        clearTimeout(timer);
+      }
+    },
+    []
+  );
+
+  const verifyOtp = useCallback(async (email: string, code: string) => {
+    const data = await api<{ token: string; user: any; isNewUser?: boolean }>('/api/auth/otp/verify', {
+      method: 'POST',
+      auth: false,
+      body: JSON.stringify({ email, code }),
+    });
+    setToken(data.token);
+    setCurrentUser(mapUser(data.user));
+    setAuthModalOpen(false);
+  }, []);
+
+  const loginDemo = useCallback(async (persona: UserPersona) => {
+    const data = await api<{ token: string; user: any }>('/api/auth/demo', {
+      method: 'POST',
+      auth: false,
+      body: JSON.stringify({ persona }),
+    });
+    setToken(data.token);
+    setCurrentUser(mapUser(data.user));
+    setAuthModalOpen(false);
+  }, []);
+
+  const logout = useCallback(() => {
+    setToken(null);
     setCurrentUser(null);
-    setAuthModalOpen(true);
-  };
+  }, []);
 
-  const updateProfile = (updates: Partial<User>) => {
-    if (!currentUser) return;
-    setCurrentUser({ ...currentUser, ...updates });
-  };
+  const updateProfile = useCallback(async (updates: Partial<User>) => {
+    const data = await api<{ user: any }>('/api/users/me', {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+    setCurrentUser(mapUser(data.user));
+  }, []);
 
-  const switchPersonaQuick = (persona: UserPersona) => {
-    const preset = DEFAULT_USERS[persona];
-    setCurrentUser(preset);
-  };
+  const switchPersonaQuick = useCallback(
+    async (persona: UserPersona) => {
+      await loginDemo(persona);
+    },
+    [loginDemo]
+  );
+
+  const completeOnboarding = useCallback(
+    async (payload: {
+      name?: string;
+      avatar?: string;
+      monthlyIncome?: number;
+      persona?: UserPersona;
+      goals?: any[];
+      useAiBudget?: boolean;
+    }) => {
+      const data = await api<{ user: any }>('/api/users/me/onboarding', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      setCurrentUser(mapUser(data.user));
+    },
+    []
+  );
 
   return (
     <AuthContext.Provider
       value={{
         currentUser,
+        authLoading,
         login,
         signup,
         loginWithGoogle,
+        requestOtp,
+        verifyOtp,
+        loginDemo,
         logout,
         updateProfile,
         switchPersonaQuick,
+        completeOnboarding,
         isAuthModalOpen,
         setAuthModalOpen,
         authMode,

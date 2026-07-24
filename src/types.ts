@@ -10,9 +10,27 @@ export interface User {
   currency: string;
   isLoggedIn: boolean;
   isGoogleUser?: boolean;
+  onboardingComplete?: boolean;
 }
 
 export type TransactionType = 'expense' | 'income';
+
+export interface SplitParticipant {
+  id: string;
+  name: string;
+  amount: number;
+  /** True when this person is you (the logged-in user). */
+  isMe?: boolean;
+  /** Friend has settled their share with you. */
+  settled?: boolean;
+}
+
+export interface SplitInfo {
+  totalAmount: number;
+  /** You paid the full bill; friends owe you their shares. */
+  paidByMe: boolean;
+  participants: SplitParticipant[];
+}
 
 export interface Transaction {
   id: string;
@@ -26,6 +44,13 @@ export interface Transaction {
   receiptUrl?: string;
   isEssential?: boolean;
   tags?: string[];
+  split?: SplitInfo;
+}
+
+export interface Friend {
+  id: string;
+  name: string;
+  color: string;
 }
 
 export interface BudgetLimit {

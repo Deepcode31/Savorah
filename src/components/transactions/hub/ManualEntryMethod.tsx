@@ -42,9 +42,14 @@ export const ManualEntryMethod: React.FC<ManualEntryMethodProps> = ({
     setAiLoading(true);
     setAiTagged(false);
     try {
-      const res = await fetch('/api/gemini/auto-categorize', {
+      const res = await fetch('/api/ai/auto-categorize', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(localStorage.getItem('savorah_token')
+            ? { Authorization: `Bearer ${localStorage.getItem('savorah_token')}` }
+            : {}),
+        },
         body: JSON.stringify({ title, amount: Number(amount) || 50, persona: currentUser?.persona || 'professional' }),
       });
       const data = await res.json();
@@ -75,12 +80,12 @@ export const ManualEntryMethod: React.FC<ManualEntryMethodProps> = ({
       className="space-y-3.5"
     >
       {/* Income / Expense toggle */}
-      <div className="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+      <div className="flex rounded-xl bg-white/8 p-1 border border-white/10">
         <button
           type="button"
           onClick={() => setType('expense')}
           className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
-            type === 'expense' ? 'bg-rose-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            type === 'expense' ? 'bg-rose-500/100 text-white shadow-sm' : 'text-mist-500 hover:text-mist-100'
           }`}
         >
           Expense Outflow
@@ -89,7 +94,7 @@ export const ManualEntryMethod: React.FC<ManualEntryMethodProps> = ({
           type="button"
           onClick={() => setType('income')}
           className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all ${
-            type === 'income' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            type === 'income' ? 'bg-emerald-600 text-white shadow-sm' : 'text-mist-500 hover:text-mist-100'
           }`}
         >
           Income Inflow
@@ -98,14 +103,14 @@ export const ManualEntryMethod: React.FC<ManualEntryMethodProps> = ({
 
       {/* Title + Auto-Tag */}
       <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-1">Title / Description</label>
+        <label className="block text-xs font-semibold text-mist-300 mb-1">Title / Description</label>
         <div className="flex gap-2">
           <input
             type="text"
             placeholder="e.g. Swiggy Dinner, Amazon Order"
             value={title}
             onChange={(e) => { setTitle(e.target.value); setAiTagged(false); }}
-            className="flex-1 px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition-all"
+            className="flex-1 px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-mist-100 focus:outline-none focus:border-emerald-400/60 focus:ring-1 focus:ring-emerald-500/20 transition-all"
             required
           />
           <button
@@ -113,11 +118,11 @@ export const ManualEntryMethod: React.FC<ManualEntryMethodProps> = ({
             onClick={handleAutoTag}
             disabled={aiLoading || !title.trim()}
             className={`py-2 px-3 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shrink-0 transition-all disabled:opacity-50 ${
-              aiTagged ? 'bg-emerald-500 text-white' : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800'
+              aiTagged ? 'bg-emerald-400/100 text-white' : 'bg-emerald-400/15 hover:bg-emerald-400/20 text-emerald-300'
             }`}
             title="Auto-categorize with Savorah AI"
           >
-            {aiTagged ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5 text-emerald-600" />}
+            {aiTagged ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5 text-emerald-300" />}
             {aiLoading ? 'AI…' : aiTagged ? 'Tagged!' : 'Auto-Tag'}
           </button>
         </div>
@@ -125,7 +130,7 @@ export const ManualEntryMethod: React.FC<ManualEntryMethodProps> = ({
           <motion.p
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-[11px] text-emerald-700 mt-1.5 font-medium italic"
+            className="text-[11px] text-emerald-300 mt-1.5 font-medium italic"
           >
             💡 {aiInsight}
           </motion.p>
@@ -135,7 +140,7 @@ export const ManualEntryMethod: React.FC<ManualEntryMethodProps> = ({
       {/* Amount & Category */}
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Amount ($)</label>
+          <label className="block text-xs font-semibold text-mist-300 mb-1">Amount (₹)</label>
           <input
             type="number"
             step="0.01"
@@ -143,16 +148,16 @@ export const ManualEntryMethod: React.FC<ManualEntryMethodProps> = ({
             placeholder="0.00"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition-all"
+            className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-mist-100 focus:outline-none focus:border-emerald-400/60 focus:ring-1 focus:ring-emerald-500/20 transition-all"
             required
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Category</label>
+          <label className="block text-xs font-semibold text-mist-300 mb-1">Category</label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-500 transition-all"
+            className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-mist-100 focus:outline-none focus:border-emerald-400/60 transition-all"
           >
             {CATEGORY_COLORS.map((c) => (
               <option key={c.name} value={c.name}>{c.name}</option>
@@ -164,20 +169,20 @@ export const ManualEntryMethod: React.FC<ManualEntryMethodProps> = ({
       {/* Date & Payment */}
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Date</label>
+          <label className="block text-xs font-semibold text-mist-300 mb-1">Date</label>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-500 transition-all"
+            className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-mist-100 focus:outline-none focus:border-emerald-400/60 transition-all"
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Method</label>
+          <label className="block text-xs font-semibold text-mist-300 mb-1">Payment Method</label>
           <select
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value)}
-            className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-500 transition-all"
+            className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-mist-100 focus:outline-none focus:border-emerald-400/60 transition-all"
           >
             {PAYMENT_METHODS.map((m) => <option key={m}>{m}</option>)}
           </select>
@@ -186,25 +191,25 @@ export const ManualEntryMethod: React.FC<ManualEntryMethodProps> = ({
 
       {/* Notes */}
       <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-1">Notes (optional)</label>
+        <label className="block text-xs font-semibold text-mist-300 mb-1">Notes (optional)</label>
         <input
           type="text"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Any additional context…"
-          className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-500 transition-all"
+          className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-mist-100 focus:outline-none focus:border-emerald-400/60 transition-all"
         />
       </div>
 
       {/* Tags */}
       <div>
-        <label className="block text-xs font-semibold text-slate-700 mb-1">Tags (comma separated)</label>
+        <label className="block text-xs font-semibold text-mist-300 mb-1">Tags (comma separated)</label>
         <input
           type="text"
           value={tagsInput}
           onChange={(e) => setTagsInput(e.target.value)}
           placeholder="e.g. food, delivery, weekly"
-          className="w-full px-3.5 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-emerald-500 transition-all"
+          className="w-full px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-xs text-mist-100 focus:outline-none focus:border-emerald-400/60 transition-all"
         />
       </div>
 
@@ -214,9 +219,9 @@ export const ManualEntryMethod: React.FC<ManualEntryMethodProps> = ({
           type="checkbox"
           checked={isEssential}
           onChange={(e) => setIsEssential(e.target.checked)}
-          className="rounded text-emerald-600 focus:ring-emerald-500"
+          className="rounded text-emerald-300 focus:ring-emerald-500"
         />
-        <span className="text-xs font-semibold text-slate-700">
+        <span className="text-xs font-semibold text-mist-300">
           Mark as Essential Cost (Housing, Groceries, Healthcare, Utilities)
         </span>
       </label>
@@ -226,7 +231,7 @@ export const ManualEntryMethod: React.FC<ManualEntryMethodProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all"
+          className="flex-1 py-2.5 px-4 rounded-xl bg-white/8 hover:bg-white/12 text-mist-300 font-bold text-xs transition-all"
         >
           Cancel
         </button>

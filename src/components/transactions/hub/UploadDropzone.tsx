@@ -61,7 +61,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
         <motion.div
           initial={{ scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 overflow-hidden"
+          className="rounded-2xl border border-emerald-400/25 bg-emerald-400/10 overflow-hidden"
         >
           {previewUrl && file.type.startsWith('image/') && (
             <div className="relative">
@@ -75,23 +75,23 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
             </div>
           )}
           <div className="flex items-center gap-3 p-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-emerald-400/15 flex items-center justify-center shrink-0">
               {file.type.startsWith('image/') ? (
-                <ImageIcon className="w-4 h-4 text-emerald-600" />
+                <ImageIcon className="w-4 h-4 text-emerald-300" />
               ) : (
-                <File className="w-4 h-4 text-emerald-600" />
+                <File className="w-4 h-4 text-emerald-300" />
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-slate-800 truncate">{file.name}</p>
-              <p className="text-[10px] text-emerald-600 font-medium">
+              <p className="text-xs font-bold text-mist-100 truncate">{file.name}</p>
+              <p className="text-[10px] text-emerald-300 font-medium">
                 {(file.size / 1024).toFixed(1)} KB · Ready to process
               </p>
             </div>
             {onClear && (
               <button
                 onClick={onClear}
-                className="p-1.5 rounded-lg hover:bg-emerald-100 text-slate-400 hover:text-slate-600 transition-all"
+                className="p-1.5 rounded-lg hover:bg-emerald-400/18 text-mist-500 hover:text-mist-100 transition-all"
                 aria-label="Remove file"
               >
                 <X className="w-4 h-4" />
@@ -125,7 +125,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
           scale: isDragging ? 1.01 : 1,
         }}
         transition={{ duration: 0.15 }}
-        className="relative cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center hover:border-emerald-400 hover:bg-emerald-50/50 group transition-colors"
+        className="relative cursor-pointer rounded-2xl border-2 border-dashed p-8 text-center hover:border-emerald-400/50 hover:bg-emerald-400/12/50 group transition-colors"
         role="button"
         tabIndex={0}
         aria-label="Upload file"
@@ -143,19 +143,19 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
           <motion.div
             animate={{ scale: isDragging ? 1.12 : 1, rotate: isDragging ? 5 : 0 }}
             className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${
-              isDragging ? 'bg-emerald-100' : 'bg-slate-100 group-hover:bg-emerald-50'
+              isDragging ? 'bg-emerald-400/15' : 'bg-white/8 group-hover:bg-emerald-400/12'
             }`}
           >
             <Upload
               className={`w-6 h-6 transition-colors ${
-                isDragging ? 'text-emerald-600' : 'text-slate-400 group-hover:text-emerald-500'
+                isDragging ? 'text-emerald-300' : 'text-mist-500 group-hover:text-emerald-500'
               }`}
             />
           </motion.div>
 
           <div>
-            <p className="text-sm font-bold text-slate-700">{label}</p>
-            <p className="text-[11px] text-slate-400 mt-0.5">{sublabel}</p>
+            <p className="text-sm font-bold text-mist-300">{label}</p>
+            <p className="text-[11px] text-mist-500 mt-0.5">{sublabel}</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -165,7 +165,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
                 e.stopPropagation();
                 inputRef.current?.click();
               }}
-              className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-[11px] font-bold hover:bg-emerald-500 transition-colors shadow-sm shadow-emerald-600/20"
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white text-[11px] font-bold hover:bg-emerald-400/120 transition-colors shadow-sm shadow-emerald-600/20"
             >
               Browse Files
             </button>
@@ -184,7 +184,7 @@ export const UploadDropzone: React.FC<UploadDropzoneProps> = ({
 
           <div className="flex gap-1.5 flex-wrap justify-center">
             {acceptedTypes.map((t) => (
-              <span key={t} className="px-2 py-0.5 rounded-lg bg-slate-100 text-[10px] font-semibold text-slate-500">
+              <span key={t} className="px-2 py-0.5 rounded-lg bg-white/8 text-[10px] font-semibold text-mist-500">
                 {t}
               </span>
             ))}

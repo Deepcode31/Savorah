@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { Transaction, BudgetLimit, SavingsGoal, NotificationItem } from '../types';
-import { INITIAL_PERSONA_DATA } from '../data/initialData';
 import { useAuth } from './AuthContext';
+import { api } from '../services/api';
 import confetti from 'canvas-confetti';
 
 interface FinanceContextType {
@@ -9,18 +9,20 @@ interface FinanceContextType {
   budgets: BudgetLimit[];
   goals: SavingsGoal[];
   notifications: NotificationItem[];
-  addTransaction: (tx: Omit<Transaction, 'id'>) => void;
-  editTransaction: (id: string, updates: Partial<Transaction>) => void;
-  deleteTransaction: (id: string) => void;
-  updateBudgetLimit: (category: string, newLimit: number) => void;
-  addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => void;
-  contributeToGoal: (id: string, amount: number) => void;
-  deleteGoal: (id: string) => void;
-  markNotificationRead: (id: string) => void;
-  clearAllNotifications: () => void;
-  addNotification: (notif: Omit<NotificationItem, 'id' | 'date' | 'read'>) => void;
-  resetToDemoData: () => void;
-  // Computed Financial Metrics
+  loading: boolean;
+  refreshFinance: () => Promise<void>;
+  addTransaction: (tx: Omit<Transaction, 'id'>) => Promise<void>;
+  editTransaction: (id: string, updates: Partial<Transaction>) => Promise<void>;
+  deleteTransaction: (id: string) => Promise<void>;
+  updateBudgetLimit: (category: string, newLimit: number) => Promise<void>;
+  setBudgetsBulk: (budgets: Array<{ category: string; limit: number; color?: string }>) => Promise<void>;
+  addGoal: (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => Promise<void>;
+  contributeToGoal: (id: string, amount: number) => Promise<void>;
+  deleteGoal: (id: string) => Promise<void>;
+  markNotificationRead: (id: string) => Promise<void>;
+  clearAllNotifications: () => Promise<void>;
+  addNotification: (notif: Omit<NotificationItem, 'id' | 'date' | 'read'>) => Promise<void>;
+  resetToDemoData: () => Promise<void>;
   totalIncome: number;
   totalExpense: number;
   netSavings: number;
@@ -33,66 +35,44 @@ const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 
 export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { currentUser } = useAuth();
-  const currentPersona = currentUser?.persona || 'professional';
 
-  // Load state per persona
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [budgets, setBudgets] = useState<BudgetLimit[]>([]);
   const [goals, setGoals] = useState<SavingsGoal[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Initialize or re-sync when persona changes
-  useEffect(() => {
-    const storageKey = `savorah_data_${currentPersona}`;
-    const saved = localStorage.getItem(storageKey);
-
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setTransactions(parsed.transactions || []);
-        setBudgets(parsed.budgets || []);
-        setGoals(parsed.goals || []);
-        setNotifications(parsed.notifications || []);
-        return;
-      } catch (e) {
-        console.error(e);
-      }
+  const refreshFinance = useCallback(async () => {
+    if (!currentUser) {
+      setTransactions([]);
+      setBudgets([]);
+      setGoals([]);
+      setNotifications([]);
+      return;
     }
+    setLoading(true);
+    try {
+      const [txRes, budRes, goalRes, notifRes] = await Promise.all([
+        api<{ transactions: Transaction[] }>('/api/transactions'),
+        api<{ budgets: BudgetLimit[] }>('/api/budgets'),
+        api<{ goals: SavingsGoal[] }>('/api/goals'),
+        api<{ notifications: NotificationItem[] }>('/api/notifications'),
+      ]);
+      setTransactions(txRes.transactions || []);
+      setBudgets(budRes.budgets || []);
+      setGoals(goalRes.goals || []);
+      setNotifications(notifRes.notifications || []);
+    } catch (e) {
+      console.error('Failed to load finance data:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [currentUser?.id, currentUser?.onboardingComplete, currentUser?.persona, currentUser?.monthlyIncome]);
 
-    // Default to mock preset for persona
-    const preset = INITIAL_PERSONA_DATA[currentPersona] || INITIAL_PERSONA_DATA.professional;
-    setTransactions(preset.transactions);
-    setBudgets(preset.budgets);
-    setGoals(preset.goals);
-    setNotifications(preset.notifications);
-  }, [currentPersona]);
-
-  // Persist state when items change
   useEffect(() => {
-    if (!currentPersona) return;
-    const storageKey = `savorah_data_${currentPersona}`;
-    localStorage.setItem(
-      storageKey,
-      JSON.stringify({
-        transactions,
-        budgets,
-        goals,
-        notifications,
-      })
-    );
-  }, [transactions, budgets, goals, notifications, currentPersona]);
+    refreshFinance();
+  }, [refreshFinance]);
 
-  // Compute category spent dynamically based on transactions
-  const updatedBudgets = useMemo(() => {
-    return budgets.map((b) => {
-      const spent = transactions
-        .filter((t) => t.type === 'expense' && t.category === b.category)
-        .reduce((acc, curr) => acc + curr.amount, 0);
-      return { ...b, spent };
-    });
-  }, [budgets, transactions]);
-
-  // Computed Financial Summary
   const totalIncome = useMemo(() => {
     const txIncome = transactions.filter((t) => t.type === 'income').reduce((acc, t) => acc + t.amount, 0);
     return txIncome > 0 ? txIncome : currentUser?.monthlyIncome || 0;
@@ -104,136 +84,149 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const essentialExpenseTotal = useMemo(() => {
     return transactions
-      .filter((t) => t.type === 'expense' && (t.isEssential || t.category === 'Housing & Rent' || t.category === 'Groceries & Dining' || t.category === 'Healthcare & Medical'))
+      .filter(
+        (t) =>
+          t.type === 'expense' &&
+          (t.isEssential ||
+            t.category === 'Housing & Rent' ||
+            t.category === 'Groceries & Dining' ||
+            t.category === 'Healthcare & Medical')
+      )
       .reduce((acc, t) => acc + t.amount, 0);
   }, [transactions]);
 
-  const nonEssentialExpenseTotal = useMemo(() => {
-    return totalExpense - essentialExpenseTotal;
-  }, [totalExpense, essentialExpenseTotal]);
+  const nonEssentialExpenseTotal = useMemo(() => totalExpense - essentialExpenseTotal, [
+    totalExpense,
+    essentialExpenseTotal,
+  ]);
 
   const netSavings = totalIncome - totalExpense;
   const savingsRate = totalIncome > 0 ? Math.round((netSavings / totalIncome) * 100) : 0;
 
-  const addTransaction = (tx: Omit<Transaction, 'id'>) => {
-    const newTx: Transaction = {
-      ...tx,
-      id: `tx-${Date.now()}`,
-    };
-    setTransactions((prev) => [newTx, ...prev]);
+  const addTransaction = async (tx: Omit<Transaction, 'id'>) => {
+    const data = await api<{ transaction: Transaction }>('/api/transactions', {
+      method: 'POST',
+      body: JSON.stringify(tx),
+    });
+    setTransactions((prev) => [data.transaction, ...prev]);
+    // Refresh budgets (spent) + notifications (budget exceeded)
+    const [budRes, notifRes] = await Promise.all([
+      api<{ budgets: BudgetLimit[] }>('/api/budgets'),
+      api<{ notifications: NotificationItem[] }>('/api/notifications'),
+    ]);
+    setBudgets(budRes.budgets || []);
+    setNotifications(notifRes.notifications || []);
+  };
 
-    // Check if adding this expense causes budget overflow
-    if (tx.type === 'expense') {
-      const b = budgets.find((item) => item.category === tx.category);
-      if (b) {
-        const currentSpent = transactions
-          .filter((t) => t.type === 'expense' && t.category === tx.category)
-          .reduce((acc, curr) => acc + curr.amount, 0);
-        const newTotal = currentSpent + tx.amount;
-        if (newTotal > b.limit) {
-          addNotification({
-            title: `Budget Limit Exceeded: ${tx.category}`,
-            message: `Your spending in ${tx.category} ($${newTotal}) has exceeded your limit of $${b.limit}!`,
-            type: 'warning',
-          });
-        }
+  const editTransaction = async (id: string, updates: Partial<Transaction>) => {
+    const data = await api<{ transaction: Transaction }>(`/api/transactions/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+    setTransactions((prev) => prev.map((t) => (t.id === id ? data.transaction : t)));
+    const budRes = await api<{ budgets: BudgetLimit[] }>('/api/budgets');
+    setBudgets(budRes.budgets || []);
+  };
+
+  const deleteTransaction = async (id: string) => {
+    await api(`/api/transactions/${id}`, { method: 'DELETE' });
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    const budRes = await api<{ budgets: BudgetLimit[] }>('/api/budgets');
+    setBudgets(budRes.budgets || []);
+  };
+
+  const updateBudgetLimit = async (category: string, newLimit: number) => {
+    const data = await api<{ budget: BudgetLimit }>(
+      `/api/budgets/${encodeURIComponent(category)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ limit: Math.max(10, newLimit) }),
       }
+    );
+    setBudgets((prev) => {
+      const exists = prev.some((b) => b.category === category);
+      if (exists) return prev.map((b) => (b.category === category ? data.budget : b));
+      return [...prev, data.budget];
+    });
+  };
+
+  const setBudgetsBulk = async (
+    items: Array<{ category: string; limit: number; color?: string }>
+  ) => {
+    const data = await api<{ budgets: BudgetLimit[] }>('/api/budgets', {
+      method: 'PUT',
+      body: JSON.stringify({ budgets: items }),
+    });
+    setBudgets(data.budgets || []);
+  };
+
+  const addGoal = async (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => {
+    const data = await api<{ goal: SavingsGoal }>('/api/goals', {
+      method: 'POST',
+      body: JSON.stringify(goal),
+    });
+    setGoals((prev) => [data.goal, ...prev]);
+  };
+
+  const contributeToGoal = async (id: string, amount: number) => {
+    const data = await api<{ goal: SavingsGoal; achieved?: boolean }>(`/api/goals/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ contribute: amount }),
+    });
+    setGoals((prev) => prev.map((g) => (g.id === id ? data.goal : g)));
+    if (data.achieved) {
+      try {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      } catch (e) {
+        console.error(e);
+      }
+      const notifRes = await api<{ notifications: NotificationItem[] }>('/api/notifications');
+      setNotifications(notifRes.notifications || []);
     }
   };
 
-  const editTransaction = (id: string, updates: Partial<Transaction>) => {
-    setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, ...updates } : t)));
-  };
-
-  const deleteTransaction = (id: string) => {
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
-  };
-
-  const updateBudgetLimit = (category: string, newLimit: number) => {
-    setBudgets((prev) =>
-      prev.map((b) => (b.category === category ? { ...b, limit: Math.max(10, newLimit) } : b))
-    );
-  };
-
-  const addGoal = (goal: Omit<SavingsGoal, 'id' | 'currentAmount'>) => {
-    const newGoal: SavingsGoal = {
-      ...goal,
-      id: `sg-${Date.now()}`,
-      currentAmount: 0,
-    };
-    setGoals((prev) => [newGoal, ...prev]);
-  };
-
-  const contributeToGoal = (id: string, amount: number) => {
-    setGoals((prev) =>
-      prev.map((g) => {
-        if (g.id === id) {
-          const updated = g.currentAmount + amount;
-          if (updated >= g.targetAmount && g.currentAmount < g.targetAmount) {
-            // Celebrate milestone with confetti!
-            try {
-              confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 },
-              });
-            } catch (e) {
-              console.error(e);
-            }
-            addNotification({
-              title: `🎉 Goal Achieved: ${g.title}!`,
-              message: `Congratulations! You reached your savings target of $${g.targetAmount.toLocaleString()}.`,
-              type: 'success',
-            });
-          }
-          return { ...g, currentAmount: updated };
-        }
-        return g;
-      })
-    );
-  };
-
-  const deleteGoal = (id: string) => {
+  const deleteGoal = async (id: string) => {
+    await api(`/api/goals/${id}`, { method: 'DELETE' });
     setGoals((prev) => prev.filter((g) => g.id !== id));
   };
 
-  const markNotificationRead = (id: string) => {
+  const markNotificationRead = async (id: string) => {
+    await api(`/api/notifications/${id}/read`, { method: 'PATCH' });
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   };
 
-  const clearAllNotifications = () => {
+  const clearAllNotifications = async () => {
+    await api('/api/notifications', { method: 'DELETE' });
     setNotifications([]);
   };
 
-  const addNotification = (notif: Omit<NotificationItem, 'id' | 'date' | 'read'>) => {
-    const newNotif: NotificationItem = {
-      ...notif,
-      id: `notif-${Date.now()}`,
-      date: new Date().toISOString().split('T')[0],
-      read: false,
-    };
-    setNotifications((prev) => [newNotif, ...prev]);
+  const addNotification = async (notif: Omit<NotificationItem, 'id' | 'date' | 'read'>) => {
+    const data = await api<{ notification: NotificationItem }>('/api/notifications', {
+      method: 'POST',
+      body: JSON.stringify(notif),
+    });
+    setNotifications((prev) => [data.notification, ...prev]);
   };
 
-  const resetToDemoData = () => {
-    const preset = INITIAL_PERSONA_DATA[currentPersona] || INITIAL_PERSONA_DATA.professional;
-    setTransactions(preset.transactions);
-    setBudgets(preset.budgets);
-    setGoals(preset.goals);
-    setNotifications(preset.notifications);
+  const resetToDemoData = async () => {
+    await api('/api/users/me/reset-demo', { method: 'POST' });
+    await refreshFinance();
   };
 
   return (
     <FinanceContext.Provider
       value={{
         transactions,
-        budgets: updatedBudgets,
+        budgets,
         goals,
         notifications,
+        loading,
+        refreshFinance,
         addTransaction,
         editTransaction,
         deleteTransaction,
         updateBudgetLimit,
+        setBudgetsBulk,
         addGoal,
         contributeToGoal,
         deleteGoal,

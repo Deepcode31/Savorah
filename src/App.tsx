@@ -1,94 +1,37 @@
-import React, { useState } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
 import { FinanceProvider } from './context/FinanceContext';
-import { Navbar } from './components/layout/Navbar';
-import { Sidebar } from './components/layout/Sidebar';
-import { AuthModal } from './components/auth/AuthModal';
-import { UserProfileModal } from './components/auth/UserProfileModal';
-import { AdaptiveDashboard } from './components/dashboard/AdaptiveDashboard';
-import { BudgetPlanner } from './components/budget/BudgetPlanner';
-import { AnalyticsView } from './components/analytics/AnalyticsView';
-import { SavingsGoalsView } from './components/goals/SavingsGoalsView';
-import { AICoachChat } from './components/ai/AICoachChat';
-import { BusinessModeView } from './components/business/BusinessModeView';
-import { Plus } from 'lucide-react';
+import { ThemeProvider } from './context/ThemeContext';
 
-function DashboardContent() {
-  const { currentUser } = useAuth();
+const LandingPage = lazy(() => import('./pages/landing/LandingPage'));
+const AppShell = lazy(() => import('./pages/app/AppShell'));
 
-  const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'budget' | 'analytics' | 'goals' | 'aicoach' | 'business'
-  >('dashboard');
-
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(!currentUser);
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50/70 via-teal-50/40 to-slate-100/90 text-slate-800 flex flex-col font-sans selection:bg-emerald-200">
-      {/* Top Navbar */}
-      <Navbar
-        onOpenAuthModal={() => setIsAuthModalOpen(true)}
-        onOpenProfileModal={() => setIsProfileModalOpen(true)}
-        onOpenAddExpense={() => setIsAddExpenseModalOpen(true)}
-      />
-
-      {/* Main Body with Sidebar + Content */}
-      <div className="flex-1 flex flex-col lg:flex-row max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 gap-4 lg:gap-6">
-        {/* Navigation Sidebar */}
-        <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
-
-        {/* View Content Area */}
-        <main className="flex-1 min-w-0 pb-20 lg:pb-16">
-          {activeTab === 'dashboard' && (
-            <AdaptiveDashboard
-              onNavigateTab={(tab) => setActiveTab(tab)}
-              onOpenAddExpense={() => setIsAddExpenseModalOpen(true)}
-            />
-          )}
-
-          {activeTab === 'budget' && <BudgetPlanner />}
-
-          {activeTab === 'analytics' && <AnalyticsView />}
-
-          {activeTab === 'goals' && <SavingsGoalsView />}
-
-          {activeTab === 'aicoach' && <AICoachChat />}
-
-          {activeTab === 'business' && <BusinessModeView />}
-        </main>
-      </div>
-
-      {/* Floating Action Button (FAB) for Mobile / Quick Expense */}
-      <button
-        onClick={() => setIsAddExpenseModalOpen(true)}
-        className="fixed bottom-6 right-6 z-40 p-4 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-2xl shadow-emerald-950/30 hover:scale-105 active:scale-95 transition-all flex items-center justify-center border border-white/30"
-        title="Quick Log Expense"
-      >
-        <Plus className="w-6 h-6" />
-      </button>
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-      />
-
-      {/* User Profile & Persona Switcher Modal */}
-      <UserProfileModal
-        isOpen={isProfileModalOpen}
-        onClose={() => setIsProfileModalOpen(false)}
-      />
+const PageLoader: React.FC = () => (
+  <div className="min-h-screen flex items-center justify-center bg-ink-950">
+    <div className="text-center space-y-4">
+      <div className="w-10 h-10 mx-auto rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
+      <p className="text-sm text-mist-500 font-display tracking-wide">Savorah</p>
     </div>
-  );
-}
+  </div>
+);
 
 export default function App() {
   return (
-    <AuthProvider>
-      <FinanceProvider>
-        <DashboardContent />
-      </FinanceProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <FinanceProvider>
+          <BrowserRouter>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/app/*" element={<AppShell />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </FinanceProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

@@ -77,7 +77,7 @@ export const INITIAL_PERSONA_DATA: Record<UserPersona, PersonaDemoData> = {
       { id: 'pg-2', title: 'Japan Vacation 2026', targetAmount: 4000, currentAmount: 3100, deadline: '2026-11-01', category: 'Entertainment & Leisure', notes: 'Flight and ryokan stays.' },
     ],
     notifications: [
-      { id: 'pn-1', title: 'AI Investment Tip', message: 'You have surplus cash flow this month. Consider allocating $400 to your High-Yield account.', type: 'info', date: '2026-07-17', read: false },
+      { id: 'pn-1', title: 'AI Investment Tip', message: 'You have surplus cash flow this month. Consider allocating ₹400 to your High-Yield account.', type: 'info', date: '2026-07-17', read: false },
       { id: 'pn-2', title: 'Tax Savings Alert', message: 'Maximize your 401(k) contribution before end of Q3 to lower taxable bracket.', type: 'info', date: '2026-07-12', read: true },
     ],
   },
@@ -106,7 +106,7 @@ export const INITIAL_PERSONA_DATA: Record<UserPersona, PersonaDemoData> = {
       { id: 'fg-2', title: 'Family SUV Upgrade', targetAmount: 15000, currentAmount: 9200, deadline: '2027-01-15', category: 'Transport & Fuel', notes: 'Hybrid 7-seater down payment' },
     ],
     notifications: [
-      { id: 'fn-1', title: 'Bill Due Tomorrow!', message: 'Water & Solar electric bill ($280) is due tomorrow.', type: 'bill', date: '2026-07-08', read: false },
+      { id: 'fn-1', title: 'Bill Due Tomorrow!', message: 'Water & Solar electric bill (₹280) is due tomorrow.', type: 'bill', date: '2026-07-08', read: false },
       { id: 'fn-2', title: 'Budget Limit Reached', message: 'Housing budget is at 96% capacity for this month.', type: 'warning', date: '2026-07-14', read: false },
     ],
   },

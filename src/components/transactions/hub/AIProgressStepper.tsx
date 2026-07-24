@@ -58,21 +58,21 @@ export const AIProgressStepper: React.FC<AIProgressStepperProps> = ({
       {/* Header */}
       <div className="flex items-center gap-2 mb-4">
         {icon && (
-          <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+          <div className="w-8 h-8 rounded-xl bg-emerald-400/15 flex items-center justify-center text-emerald-300">
             {icon}
           </div>
         )}
         <div>
-          <p className="text-xs font-extrabold text-slate-900">{title}</p>
-          <p className="text-[10px] text-slate-400">{done ? 'Complete!' : 'Please wait…'}</p>
+          <p className="text-xs font-extrabold text-mist-100">{title}</p>
+          <p className="text-[10px] text-mist-500">{done ? 'Complete!' : 'Please wait…'}</p>
         </div>
         <div className="ml-auto">
-          <span className="text-xs font-black text-emerald-700">{progressPct}%</span>
+          <span className="text-xs font-black text-emerald-300">{progressPct}%</span>
         </div>
       </div>
 
       {/* Global progress bar */}
-      <div className="h-1.5 rounded-full bg-slate-100 mb-4 overflow-hidden">
+      <div className="h-1.5 rounded-full bg-white/8 mb-4 overflow-hidden">
         <motion.div
           className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
           initial={{ width: '0%' }}
@@ -94,7 +94,7 @@ export const AIProgressStepper: React.FC<AIProgressStepperProps> = ({
               animate={{ opacity: i <= currentStep || done ? 1 : 0.3, x: 0 }}
               transition={{ delay: i * 0.04, duration: 0.2 }}
               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all ${
-                isCurrent ? 'bg-emerald-50 border border-emerald-200/80' : ''
+                isCurrent ? 'bg-emerald-400/10 border border-emerald-400/25/80' : ''
               }`}
             >
               <div className="w-5 h-5 flex items-center justify-center shrink-0">
@@ -112,19 +112,19 @@ export const AIProgressStepper: React.FC<AIProgressStepperProps> = ({
               <span
                 className={`text-[11px] font-semibold flex-1 ${
                   isCompleted || done
-                    ? 'text-emerald-700'
+                    ? 'text-emerald-300'
                     : isCurrent
-                    ? 'text-slate-900'
-                    : 'text-slate-400'
+                    ? 'text-mist-100'
+                    : 'text-mist-500'
                 }`}
               >
                 {step.label}
               </span>
 
               {isCurrent && (
-                <div className="w-12 h-1 rounded-full bg-emerald-100 overflow-hidden">
+                <div className="w-12 h-1 rounded-full bg-emerald-400/15 overflow-hidden">
                   <motion.div
-                    className="h-full bg-emerald-500 rounded-full"
+                    className="h-full bg-emerald-400/100 rounded-full"
                     initial={{ width: '0%' }}
                     animate={{ width: '100%' }}
                     transition={{ duration: step.duration / 1000, ease: 'linear' }}

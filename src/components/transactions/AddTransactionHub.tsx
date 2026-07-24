@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Edit3, ScanLine, FileSpreadsheet, MessageSquare } from 'lucide-react';
+import { X, Edit3, ScanLine, FileSpreadsheet, MessageSquare, Users } from 'lucide-react';
 import { Transaction } from '../../types';
 import { useFinance } from '../../context/FinanceContext';
 import { ExtractedTransaction, checkDuplicate } from '../../services/transactionImportServices';
@@ -8,9 +8,10 @@ import { ManualEntryMethod } from './hub/ManualEntryMethod';
 import { ReceiptScanMethod } from './hub/ReceiptScanMethod';
 import { StatementImportMethod } from './hub/StatementImportMethod';
 import { SMSParseMethod } from './hub/SMSParseMethod';
+import { SplitPaymentMethod } from './hub/SplitPaymentMethod';
 import { TransactionReviewForm } from './hub/TransactionReviewForm';
 
-type Method = 'manual' | 'receipt' | 'statement' | 'sms';
+type Method = 'manual' | 'receipt' | 'statement' | 'sms' | 'split';
 type HubStage = 'select' | Method | 'review' | 'statement-success';
 
 interface AddTransactionHubProps {
@@ -25,34 +26,42 @@ const METHODS: { id: Method; icon: React.FC<{ className?: string }>; label: stri
     icon: Edit3,
     label: 'Manual Entry',
     desc: 'Type transaction details manually',
-    accent: 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100 text-emerald-700',
+    accent: 'bg-emerald-400/8 border-emerald-400/20 hover:bg-emerald-400/15 text-emerald-300',
+  },
+  {
+    id: 'split',
+    icon: Users,
+    label: 'Split with Friends',
+    desc: 'Add friends, split the bill, track who owes you',
+    accent: 'bg-cyan-400/8 border-cyan-400/20 hover:bg-cyan-400/15 text-cyan-300',
   },
   {
     id: 'receipt',
     icon: ScanLine,
     label: 'Scan Bank Receipt',
     desc: 'Upload image or PDF — AI extracts details',
-    accent: 'bg-violet-50 border-violet-200 hover:bg-violet-100 text-violet-700',
+    accent: 'bg-violet-400/8 border-violet-400/20 hover:bg-violet-400/15 text-violet-300',
   },
   {
     id: 'statement',
     icon: FileSpreadsheet,
     label: 'Import Bank Statement',
     desc: 'CSV, Excel or PDF — bulk import transactions',
-    accent: 'bg-amber-50 border-amber-200 hover:bg-amber-100 text-amber-700',
+    accent: 'bg-amber-400/8 border-amber-400/20 hover:bg-amber-400/15 text-amber-300',
   },
   {
     id: 'sms',
     icon: MessageSquare,
     label: 'Paste Payment SMS',
     desc: 'Paste UPI/bank SMS — AI parses it instantly',
-    accent: 'bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700',
+    accent: 'bg-blue-400/8 border-blue-400/20 hover:bg-blue-400/15 text-blue-300',
   },
 ];
 
 const STAGE_TITLE: Record<HubStage, string> = {
   select: 'Add Transaction',
   manual: 'Manual Entry',
+  split: 'Split with Friends',
   receipt: 'Scan Bank Receipt',
   statement: 'Import Bank Statement',
   sms: 'Paste Payment SMS',
@@ -109,7 +118,7 @@ export const AddTransactionHub: React.FC<AddTransactionHubProps> = ({ isOpen, ed
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       role="dialog"
       aria-modal="true"
@@ -120,11 +129,11 @@ export const AddTransactionHub: React.FC<AddTransactionHubProps> = ({ isOpen, ed
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-        className="relative w-full max-w-md rounded-3xl bg-white/97 backdrop-blur-xl border border-emerald-500/20 shadow-2xl shadow-slate-900/20 overflow-hidden"
+        className="relative w-full max-w-md rounded-3xl bg-ink-900 glass-strong card-ring overflow-hidden"
         style={{ maxHeight: '90vh' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100">
+        <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-white/8">
           <div>
             <AnimatePresence mode="wait">
               <motion.h3
@@ -133,12 +142,12 @@ export const AddTransactionHub: React.FC<AddTransactionHubProps> = ({ isOpen, ed
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 8 }}
                 transition={{ duration: 0.15 }}
-                className="text-lg font-extrabold text-slate-900 tracking-tight"
+                className="font-display text-lg font-semibold text-mist-100 tracking-tight"
               >
                 {editingTx ? 'Edit Transaction' : STAGE_TITLE[stage]}
               </motion.h3>
             </AnimatePresence>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-mist-500 mt-0.5">
               {stage === 'select'
                 ? "Choose how you'd like to add your transaction"
                 : stage === 'review'
@@ -150,7 +159,7 @@ export const AddTransactionHub: React.FC<AddTransactionHubProps> = ({ isOpen, ed
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all"
+            className="p-2 rounded-full text-mist-500 hover:text-white hover:bg-white/10 transition-all"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -183,14 +192,14 @@ export const AddTransactionHub: React.FC<AddTransactionHubProps> = ({ isOpen, ed
                       onClick={() => setStage(m.id)}
                       className={`w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl border text-left transition-all group ${m.accent}`}
                     >
-                      <div className="w-9 h-9 rounded-xl bg-white/70 flex items-center justify-center shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+                      <div className="w-9 h-9 rounded-xl bg-white/8 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                         <Icon className="w-4.5 h-4.5" />
                       </div>
                       <div>
-                        <p className="text-xs font-extrabold text-slate-900">{m.label}</p>
-                        <p className="text-[11px] text-slate-500 mt-0.5">{m.desc}</p>
+                        <p className="text-xs font-extrabold text-mist-100">{m.label}</p>
+                        <p className="text-[11px] text-mist-500 mt-0.5">{m.desc}</p>
                       </div>
-                      <div className="ml-auto text-slate-300 group-hover:text-slate-500 transition-colors">›</div>
+                      <div className="ml-auto text-mist-500 group-hover:text-mist-300 transition-colors">›</div>
                     </motion.button>
                   );
                 })}
@@ -238,6 +247,16 @@ export const AddTransactionHub: React.FC<AddTransactionHubProps> = ({ isOpen, ed
               </motion.div>
             )}
 
+            {/* ── Split with Friends ────────────────────────── */}
+            {stage === 'split' && (
+              <motion.div key="split" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                <SplitPaymentMethod
+                  onSave={handleManualSave}
+                  onCancel={goBack}
+                />
+              </motion.div>
+            )}
+
             {/* ── Review ────────────────────────────────────── */}
             {stage === 'review' && extracted && (
               <motion.div key="review" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
@@ -262,13 +281,13 @@ export const AddTransactionHub: React.FC<AddTransactionHubProps> = ({ isOpen, ed
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 20, delay: 0.1 }}
-                  className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center"
+                  className="w-16 h-16 rounded-full bg-emerald-400/15 flex items-center justify-center"
                 >
-                  <FileSpreadsheet className="w-8 h-8 text-emerald-600" />
+                  <FileSpreadsheet className="w-8 h-8 text-emerald-300" />
                 </motion.div>
                 <div>
-                  <p className="text-base font-extrabold text-slate-900">Import Successful!</p>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-base font-extrabold text-mist-100">Import Successful!</p>
+                  <p className="text-xs text-mist-500 mt-1">
                     {importedCount} transaction{importedCount !== 1 ? 's' : ''} added to your ledger.
                   </p>
                 </div>
@@ -276,7 +295,7 @@ export const AddTransactionHub: React.FC<AddTransactionHubProps> = ({ isOpen, ed
                   <button
                     type="button"
                     onClick={() => setStage('select')}
-                    className="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all"
+                    className="flex-1 py-2.5 rounded-xl bg-white/8 hover:bg-white/12 text-mist-300 font-bold text-xs transition-all"
                   >
                     Import More
                   </button>

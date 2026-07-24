@@ -1,19 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ScanLine } from 'lucide-react';
+import { ScanLine, Loader2 } from 'lucide-react';
 import { UploadDropzone } from './UploadDropzone';
-import { AIProgressStepper, ProgressStep } from './AIProgressStepper';
 import { parseReceiptImage, ExtractedTransaction } from '../../../services/transactionImportServices';
-
-const SCAN_STEPS: ProgressStep[] = [
-  { label: 'Scanning Receipt…', duration: 500 },
-  { label: 'Reading Amount…', duration: 400 },
-  { label: 'Extracting Merchant…', duration: 450 },
-  { label: 'Detecting Date…', duration: 350 },
-  { label: 'Categorizing Transaction…', duration: 600 },
-];
-
-type Stage = 'upload' | 'processing' | 'done';
 
 interface ReceiptScanMethodProps {
   onExtracted: (tx: ExtractedTransaction) => void;
@@ -21,116 +10,85 @@ interface ReceiptScanMethodProps {
 }
 
 export const ReceiptScanMethod: React.FC<ReceiptScanMethodProps> = ({ onExtracted, onCancel }) => {
-  const [stage, setStage] = useState<Stage>('upload');
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleFile = (f: File) => {
     setFile(f);
-    if (f.type.startsWith('image/')) {
-      setPreviewUrl(URL.createObjectURL(f));
-    } else {
-      setPreviewUrl(null);
-    }
+    setError('');
+    if (f.type.startsWith('image/')) setPreviewUrl(URL.createObjectURL(f));
+    else setPreviewUrl(null);
   };
 
   const handleStartScan = async () => {
     if (!file) return;
-    setStage('processing');
+    setLoading(true);
+    setError('');
     try {
       const result = await parseReceiptImage(file);
-      // onComplete in stepper will trigger — but we also need the result
-      // Store it for when stepper finishes
-      pendingResult.current = result;
-    } catch (e) {
-      console.error(e);
-      setStage('upload');
-    }
-  };
-
-  const pendingResult = React.useRef<ExtractedTransaction | null>(null);
-
-  const handleStepperComplete = () => {
-    setStage('done');
-    if (pendingResult.current) {
-      setTimeout(() => onExtracted(pendingResult.current!), 400);
+      onExtracted(result);
+    } catch (e: any) {
+      setError(e?.message || 'Receipt scan failed. Use a clear photo or check OPENROUTER_API_KEY.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-4"
-    >
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
       <AnimatePresence mode="wait">
-        {stage === 'upload' && (
-          <motion.div key="upload" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
+        {loading ? (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center gap-3 py-10 rounded-2xl bg-white/5 border border-white/10"
+          >
+            <Loader2 className="w-8 h-8 text-emerald-300 animate-spin" />
+            <p className="text-sm font-semibold text-mist-100">Reading receipt with AI…</p>
+            <p className="text-xs text-mist-500">Extracting merchant, amount, and category</p>
+          </motion.div>
+        ) : (
+          <motion.div key="upload" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
             <UploadDropzone
               onFileSelect={handleFile}
-              accept="image/*,.pdf"
-              label="Drop your bank receipt here"
-              sublabel="Supports JPG, PNG, JPEG, PDF"
-              acceptedTypes={['JPG', 'PNG', 'JPEG', 'PDF']}
+              accept="image/*"
+              label="Drop your receipt photo here"
+              sublabel="JPG or PNG works best"
+              acceptedTypes={['JPG', 'PNG']}
               file={file}
               previewUrl={previewUrl}
-              onClear={() => { setFile(null); setPreviewUrl(null); }}
+              onClear={() => {
+                setFile(null);
+                setPreviewUrl(null);
+                setError('');
+              }}
             />
+            {error && (
+              <p className="text-xs text-rose-300 bg-rose-500/10 border border-rose-100 rounded-xl px-3 py-2">
+                {error}
+              </p>
+            )}
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={onCancel}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all"
+                className="flex-1 py-2.5 px-4 rounded-xl bg-white/8 text-mist-300 font-semibold text-xs"
               >
-                ← Back
+                Back
               </button>
               <button
                 type="button"
                 onClick={handleStartScan}
                 disabled={!file}
-                className="flex-[2] py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                className="flex-[2] py-2.5 px-4 rounded-xl bg-emerald-600 text-white font-semibold text-xs disabled:opacity-40 flex items-center justify-center gap-2"
               >
                 <ScanLine className="w-4 h-4" />
                 Scan with AI
               </button>
             </div>
-          </motion.div>
-        )}
-
-        {stage === 'processing' && (
-          <motion.div
-            key="processing"
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            className="p-5 rounded-2xl bg-slate-50 border border-slate-200"
-          >
-            <AIProgressStepper
-              steps={SCAN_STEPS}
-              onComplete={handleStepperComplete}
-              title="AI Receipt Scan"
-              icon={<ScanLine className="w-4 h-4" />}
-            />
-          </motion.div>
-        )}
-
-        {stage === 'done' && (
-          <motion.div
-            key="done"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center gap-3 py-8"
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-              className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center"
-            >
-              <ScanLine className="w-7 h-7 text-emerald-600" />
-            </motion.div>
-            <p className="text-sm font-extrabold text-slate-900">Extraction complete!</p>
-            <p className="text-xs text-slate-500">Loading review form…</p>
           </motion.div>
         )}
       </AnimatePresence>

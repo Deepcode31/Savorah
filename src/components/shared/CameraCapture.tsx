@@ -171,12 +171,12 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
             </div>
             <div>
               <p className="text-xs font-extrabold text-white">{title}</p>
-              <p className="text-[10px] text-slate-400">{hint}</p>
+              <p className="text-[10px] text-mist-500">{hint}</p>
             </div>
           </div>
           <button
             onClick={handleClose}
-            className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-700 transition-all"
+            className="p-1.5 rounded-full text-mist-500 hover:text-white hover:bg-slate-700 transition-all"
             aria-label="Close camera"
           >
             <X className="w-4 h-4" />
@@ -213,7 +213,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
                 animate={{ opacity: 0 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="absolute inset-0 bg-white pointer-events-none"
+                className="absolute inset-0 bg-white/8 pointer-events-none"
               />
             )}
           </AnimatePresence>
@@ -224,23 +224,23 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
               {stage === 'requesting' && (
                 <>
                   <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
-                  <p className="text-sm font-semibold text-slate-300">Starting camera…</p>
+                  <p className="text-sm font-semibold text-mist-500">Starting camera…</p>
                 </>
               )}
               {stage === 'denied' && (
                 <>
-                  <div className="w-12 h-12 rounded-2xl bg-rose-500/20 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-500/100/20 flex items-center justify-center">
                     <AlertTriangle className="w-6 h-6 text-rose-400" />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-white">Camera Access Denied</p>
-                    <p className="text-[11px] text-slate-400 mt-1">
+                    <p className="text-[11px] text-mist-500 mt-1">
                       Allow camera access in your browser settings, then try again.
                     </p>
                   </div>
                   <button
                     onClick={() => startCamera(facing)}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-400/120 text-white text-xs font-bold transition-all"
                   >
                     Try Again
                   </button>
@@ -249,11 +249,11 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
               {stage === 'unavailable' && (
                 <>
                   <div className="w-12 h-12 rounded-2xl bg-slate-700 flex items-center justify-center">
-                    <Camera className="w-6 h-6 text-slate-400" />
+                    <Camera className="w-6 h-6 text-mist-500" />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-white">Camera Unavailable</p>
-                    <p className="text-[11px] text-slate-400 mt-1">
+                    <p className="text-[11px] text-mist-500 mt-1">
                       No camera found or the browser blocked access. Use "Browse Files" instead.
                     </p>
                   </div>
@@ -277,7 +277,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
             <motion.div
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg"
+              className="absolute top-3 right-3 w-8 h-8 rounded-full bg-emerald-400/100 flex items-center justify-center shadow-lg"
             >
               <CheckCircle2 className="w-5 h-5 text-white" />
             </motion.div>
@@ -294,7 +294,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
               {/* Flip camera */}
               <button
                 onClick={handleFlip}
-                className="w-10 h-10 rounded-full bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white flex items-center justify-center transition-all"
+                className="w-10 h-10 rounded-full bg-slate-700 hover:bg-slate-600 text-mist-500 hover:text-white flex items-center justify-center transition-all"
                 aria-label="Flip camera"
                 title="Switch camera"
               >
@@ -305,7 +305,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
               <motion.button
                 onClick={handleCapture}
                 whileTap={{ scale: 0.92 }}
-                className="w-16 h-16 rounded-full bg-white hover:bg-emerald-50 border-4 border-slate-300 hover:border-emerald-400 shadow-lg flex items-center justify-center transition-all"
+                className="w-16 h-16 rounded-full bg-white/8 hover:bg-emerald-400/12 border-4 border-white/15 hover:border-emerald-400/50 shadow-lg flex items-center justify-center transition-all"
                 aria-label="Capture photo"
               >
                 <div className="w-10 h-10 rounded-full bg-slate-800 hover:bg-emerald-600 transition-colors" />
@@ -313,7 +313,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
 
               {/* Zoom hint */}
               <div
-                className="w-10 h-10 rounded-full bg-slate-700 text-slate-400 flex items-center justify-center"
+                className="w-10 h-10 rounded-full bg-slate-700 text-mist-500 flex items-center justify-center"
                 title="Pinch to zoom on mobile"
               >
                 <ZoomIn className="w-4 h-4" />
